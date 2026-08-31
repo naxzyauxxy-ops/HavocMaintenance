@@ -1,0 +1,102 @@
+# ============================================================================
+#  HavocMaintenance
+#  Maintenance mode for Paper / Purpur 1.21.x with an HTTP API your Discord
+#  bot can read from and write to.
+#
+#  All message strings use MiniMessage formatting:
+#    https://docs.advntr.dev/minimessage/format.html
+#  Examples: <red>text</red>  <gradient:#ff0000:#ffaa00>text</gradient>
+#            <bold>  <newline>  <#55ffff>
+# ============================================================================
+
+# Purely cosmetic - used in kick messages, the MOTD and the Discord embeds.
+server-name: "HavocSMP"
+
+messages:
+  # Shown on the disconnect screen when someone tries to join during maintenance.
+  kick: |-
+    <gradient:#ff5555:#ffaa00><bold>MAINTENANCE</bold></gradient><newline><newline><white>The server is currently down for maintenance.</white><newline><gray>Reason:</gray> <yellow><reason></yellow><newline><newline><gray>Follow our Discord for updates.</gray>
+
+  # Shown to players already online when maintenance is switched ON.
+  kick-on-enable: |-
+    <gradient:#ff5555:#ffaa00><bold>MAINTENANCE</bold></gradient><newline><newline><white>The server has entered maintenance mode.</white><newline><gray>Reason:</gray> <yellow><reason></yellow><newline><newline><gray>We'll be back shortly.</gray>
+
+  # Server list MOTD while maintenance is ON.
+  motd-maintenance: "<gradient:#ff5555:#ffaa00><bold>MAINTENANCE MODE</bold></gradient><newline><gray><reason></gray>"
+
+  # Server list MOTD while maintenance is OFF.
+  # Leave blank ("") to leave your normal server.properties MOTD untouched.
+  motd-normal: ""
+
+  # Chat feedback for staff.
+  enabled-broadcast: "<yellow>Maintenance mode <red><bold>ENABLED</bold></red> by <white><actor></white>.</yellow>"
+  disabled-broadcast: "<yellow>Maintenance mode <green><bold>DISABLED</bold></green> by <white><actor></white>.</yellow>"
+  bypass-join: "<gray>[<yellow>!</yellow>] Maintenance mode is <red>ON</red>. You joined using your bypass permission.</gray>"
+
+motd:
+  # Replace the server list MOTD during maintenance.
+  enabled: true
+  # Show a fake version string (renders in red next to the player count).
+  # Some clients only display this when the protocol number doesn't match,
+  # which is why protocol-version is forced to -1 when this is on.
+  fake-version:
+    enabled: false
+    text: "Maintenance"
+  # Hide the online/max player counts entirely during maintenance.
+  hide-players: false
+  # Override the displayed player counts during maintenance.
+  # Set either to -1 to leave it as-is.
+  online-count: 0
+  max-count: -1
+
+# Players allowed in during maintenance, on top of anyone holding
+# havocmaintenance.bypass. Names are matched case-insensitively.
+# Managed in-game with /maintenance whitelist add|remove|list
+whitelist:
+  - "Notch"
+
+# ============================================================================
+#  HTTP API  -  this is what your Discord bot talks to
+# ============================================================================
+api:
+  enabled: true
+
+  # Interface to bind to. 0.0.0.0 listens on every interface.
+  bind: "0.0.0.0"
+
+  # IMPORTANT (Pterodactyl/Ptero users): this must be an ALLOCATED port on
+  # your server, not just any number. Add a secondary allocation in the
+  # Network tab and put that port here.
+  port: 8123
+
+  # CHANGE THIS. Every request must send it as:
+  #   Authorization: Bearer <token>
+  # Anyone with this token can toggle maintenance on your server, so treat it
+  # like a password. Traffic is plain HTTP and is NOT encrypted - only expose
+  # this port to your bot's host, and put it behind a reverse proxy with TLS
+  # if it has to cross the public internet.
+  token: "CHANGE_ME_TO_A_LONG_RANDOM_STRING"
+
+  # How often (in ticks) the plugin refreshes the snapshot the API serves.
+  # 20 ticks = 1 second. Lower is fresher but slightly more work.
+  refresh-ticks: 20
+
+# ============================================================================
+#  Discord webhook  -  optional instant push when maintenance is toggled.
+#  This is separate from the bot: it posts straight to a channel webhook so
+#  the announcement lands the moment the state flips, with no polling delay.
+#  Leave url blank to disable.
+# ============================================================================
+webhook:
+  url: ""
+  username: "HavocSMP Status"
+  # Left border colour of the embed, as a decimal integer.
+  color-maintenance: 15548997   # red
+  color-online: 5763719         # green
+
+# Internal - do not edit by hand. The plugin writes the live state here so it
+# survives restarts. Use /maintenance on|off instead.
+state:
+  enabled: false
+  reason: "Scheduled maintenance"
+  since: 0

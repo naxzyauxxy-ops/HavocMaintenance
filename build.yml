@@ -1,0 +1,53 @@
+name: Build HavocMaintenance
+
+on:
+  push:
+    branches: [ "**" ]
+    tags: [ "v*" ]
+  pull_request:
+  # Lets you build on demand from the Actions tab.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          # Caches ~/.m2 so repeat builds don't re-download the Paper API.
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn -B --no-transfer-progress clean package
+
+      - name: Show what was built
+        run: ls -lh target/*.jar
+
+      # Download this from the "Artifacts" section at the bottom of the
+      # workflow run page. It arrives as a .zip containing the .jar.
+      - name: Upload jar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HavocMaintenance-jar
+          path: target/*.jar
+          if-no-files-found: error
+          retention-days: 90
+
+      # Pushing a tag like v1.0.0 also publishes a GitHub Release with the jar
+      # attached, so you can wget it straight onto the server.
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/*.jar
+          generate_release_notes: true

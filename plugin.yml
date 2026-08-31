@@ -1,0 +1,22 @@
+name: HavocMaintenance
+version: '${project.version}'
+main: club.havocsmp.maintenance.HavocMaintenance
+api-version: '1.21'
+description: Maintenance mode with an HTTP status API for Discord bots.
+author: HavocSMP
+folia-supported: false
+
+commands:
+  maintenance:
+    description: Control maintenance mode.
+    usage: /maintenance <on|off|toggle|status|reason|whitelist|reload>
+    aliases: [maint, mm]
+    permission: havocmaintenance.admin
+
+permissions:
+  havocmaintenance.admin:
+    description: Allows use of /maintenance.
+    default: op
+  havocmaintenance.bypass:
+    description: Allows joining while maintenance mode is active.
+    default: op
