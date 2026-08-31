@@ -2,24 +2,16 @@ name: Build HavocMaintenance
 
 on:
   push:
-    branches: [ "**" ]
-    tags: [ "v*" ]
   pull_request:
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Prints every file in the repo. If the build fails, this step shows
-      # exactly where your files actually ended up.
       - name: Show repository layout
         run: find . -path ./.git -prune -o -type f -print | sort
 
@@ -33,19 +25,11 @@ jobs:
       - name: Build with Maven
         run: mvn -B --no-transfer-progress clean package
 
-      # A jar without plugin.yml looks like a successful build but will never
-      # load. Fail here instead of finding out from the server console.
-      - name: Verify the jar contains plugin.yml
-        run: |
-          echo "--- Contents of the jar ---"
-          unzip -l target/*.jar
-          if unzip -l target/*.jar | grep -qE ' plugin\.yml$'; then
-            echo "OK: plugin.yml is inside the jar."
-          else
-            echo "::error::plugin.yml is MISSING from the jar."
-            echo "It must exist at exactly: src/main/resources/plugin.yml"
-            exit 1
-          fi
+      - name: List jar contents
+        run: unzip -l target/*.jar
+
+      - name: Verify plugin.yml is inside the jar
+        run: unzip -l target/*.jar | grep -qE ' plugin\.yml$' || (echo "ERROR - plugin.yml is missing. It must be at src/main/resources/plugin.yml" && exit 1)
 
       - name: Upload jar artifact
         uses: actions/upload-artifact@v4
@@ -53,6 +37,3 @@ jobs:
           name: HavocMaintenance-jar
           path: target/*.jar
           if-no-files-found: error
-          retention-days: 90
-
-      - name: Publish
